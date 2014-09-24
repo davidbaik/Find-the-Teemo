@@ -1,0 +1,204 @@
+package ca.cmpt276.as3.findtheteemo;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class GameActivity extends Activity {
+
+	private final static int SMALL_NUM_TEEMOS = 6;
+	private final static int MEDIUM_NUM_TEEMOS = 10;
+	private final static int LARGE_NUM_TEEMOS = 15;
+	private final static int XLARGE_NUM_TEEMOS = 20;
+	
+	private final static int SMALL_NUM_ROWS = 3;
+	private final static int SMALL_NUM_COLS = 4;
+	private final static int MEDIUM_NUM_ROWS = 4;
+	private final static int MEDIUM_NUM_COLS = 6;
+	private final static int LARGE_NUM_ROWS = 6;
+	private final static int LARGE_NUM_COLS = 10;
+	
+	private Button[][] buttons = null; 
+	private GameLogic game = null;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_game);
+		if (getBoardSize() == 0) {
+			populateGameBoard(SMALL_NUM_COLS, SMALL_NUM_ROWS);
+			game = new GameLogic("small", getNumberOfTeemos());
+		} else if (getBoardSize() == 1) {
+			populateGameBoard(MEDIUM_NUM_COLS, MEDIUM_NUM_ROWS);
+			game = new GameLogic("medium", getNumberOfTeemos());
+		} else {
+			populateGameBoard(LARGE_NUM_COLS, LARGE_NUM_ROWS);
+			game = new GameLogic("large", getNumberOfTeemos());
+		}
+		
+		incrementNumberGamesStarted();
+		setupNumGamesStartedDisplay();
+		setupTeemoCountDisplay();
+	}
+	
+	public void setupTeemoCountDisplay() {
+		TextView view = (TextView) findViewById(R.id.txtTeemosFound);
+		String message = (String) getResources().getText(R.string.teemos_found);
+		int numFound = game.getTeemosFound();
+		message += numFound + " of ";
+		if (getNumberOfTeemos() == 0) {
+			message += SMALL_NUM_TEEMOS;
+		} else if (getNumberOfTeemos() == 1) {
+			message += MEDIUM_NUM_TEEMOS;
+		} else if (getNumberOfTeemos() == 2) {
+			message += LARGE_NUM_TEEMOS;
+		} else {
+			message += XLARGE_NUM_TEEMOS;
+		}
+		view.setText(message);
+	}
+	private int getNumberOfTeemos() {
+		SharedPreferences numTeemos = getSharedPreferences("NumberOfTeemos", MODE_PRIVATE);
+		return numTeemos.getInt("NumberOfTeemosIndex", 0);
+	}
+
+	private void incrementNumberGamesStarted() {
+		SharedPreferences runStats = getSharedPreferences("GameStats", MODE_PRIVATE);
+        int timesRun = runStats.getInt("TimesLoaded", 0);
+        
+        timesRun++;
+
+        SharedPreferences.Editor prefEditor = runStats.edit();
+        prefEditor.putInt("TimesLoaded", timesRun);
+        prefEditor.commit();	
+	}
+
+	private void setupNumGamesStartedDisplay() {
+		TextView view = (TextView) findViewById(R.id.txtTimesPlayed);
+		String message = (String) getResources().getText(R.string.times_played);
+		message += getNumberTimesStarted();
+		view.setText(message);
+	}
+	private int getNumberTimesStarted() {
+	        SharedPreferences runStats = getSharedPreferences("GameStats", MODE_PRIVATE);
+	        return runStats.getInt("TimesLoaded", 0);         
+	}
+
+	private int getBoardSize() {
+		SharedPreferences size = getSharedPreferences("BoardSize", MODE_PRIVATE);
+		return size.getInt("BoardSizeIndex", 0);
+	}
+	
+	private void populateGameBoard(final int numCols, final int numRows) {
+		TableLayout gameBoard = (TableLayout) findViewById(R.id.gameBoard);
+		buttons = new Button[numRows][numCols];
+
+		for (int row = 0; row < numRows; row++) {
+			TableRow tableRow = new TableRow(this);
+			tableRow.setLayoutParams(new TableLayout.LayoutParams(
+					TableLayout.LayoutParams.MATCH_PARENT,
+					TableLayout.LayoutParams.MATCH_PARENT,
+					1.0f));
+			gameBoard.addView(tableRow);
+			
+			for (int col = 0; col < numCols; col++) {
+    			final int FINAL_ROW = row;
+    			final int FINAL_COL = col;
+    			
+				Button button = new Button(this);
+				button.setLayoutParams(new TableRow.LayoutParams(
+						TableRow.LayoutParams.MATCH_PARENT,
+						TableRow.LayoutParams.MATCH_PARENT,
+						1.0f));
+				
+				button.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						// Lock Button Sizes:
+						lockButtonSizes(numCols, numRows);
+						// CALL A METHOD HERE (GameLogic.java)
+						if (game.isTeemoThere(FINAL_COL, FINAL_ROW)) {
+							setButtonHit(FINAL_COL, FINAL_ROW);
+						} else {
+							setButtonMiss(FINAL_COL, FINAL_ROW);
+						}
+					}
+				});
+				
+				tableRow.addView(button);
+				buttons[row][col] = button;
+			}
+		}
+	}
+	private void lockButtonSizes(int numCols, int numRows) {
+		for (int row = 0; row < numRows; row++) {
+			for (int col = 0; col < numCols; col++) {
+				Button button = buttons[row][col];
+				
+				int width = button.getWidth();
+				button.setMinWidth(width);
+				button.setMaxWidth(width);
+				
+				int height = button.getHeight();
+				button.setMinHeight(height);
+				button.setMaxHeight(height);
+			}
+		}	
+	}
+	
+	public void setButtonDefault(int col, int row) { //DOES NOT WORK ATMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+		Button button = buttons[row][col];
+		
+		// Scale image to button: Only works in JellyBean!
+		int newWidth = button.getWidth();
+		int newHeight = button.getHeight();
+		Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.teemo);
+		Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
+		Resources resource = getResources();
+		button.setBackground(new BitmapDrawable(resource, scaledBitmap));
+	}
+	
+	public void setButtonHit(int col, int row) {
+		Button button = buttons[row][col];
+		
+		// Scale image to button: Only works in JellyBean!
+		int newWidth = button.getWidth();
+		int newHeight = button.getHeight();
+		Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.dead_teemo);
+		Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
+		Resources resource = getResources();
+		button.setBackground(new BitmapDrawable(resource, scaledBitmap));
+	}
+	
+	public void setButtonMiss(int col, int row) {
+		Button button = buttons[row][col];
+		
+		// Scale image to button: Only works in JellyBean!
+		int newWidth = button.getWidth();
+		int newHeight = button.getHeight();
+		Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.shroom_button);
+		Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
+		Resources resource = getResources();
+		button.setBackground(new BitmapDrawable(resource, scaledBitmap));
+		
+		// Change text on button:
+//		int numTeemosAround = game.getTeemosAround(col, row);
+//		setButtonText(row, col, numTeemosAround);
+	}
+	
+//	public void setButtonText(int col, int row, int value) {
+//		Button button = buttons[row][col];
+//		button.setText(value);
+//	}
+}

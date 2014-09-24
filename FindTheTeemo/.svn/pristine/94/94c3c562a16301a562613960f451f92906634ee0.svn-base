@@ -1,0 +1,89 @@
+package ca.cmpt276.as3.findtheteemo;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.content.Intent;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.AnimationSet;
+import android.view.animation.TranslateAnimation;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+
+public class WelcomeScreen extends Activity {
+
+	private static final int DURATION_OF_ANIMATIONS = 3000;
+	private static final int DISTANCE_TO_MOVE_LEFT = -1000;
+	private static final float DISTANCE_TO_MOVE_RIGHT = 400;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_welcome_screen);
+		
+		setupSkipButton();
+
+		displayWelcomeMessage();
+		moveTeemo();
+	}
+
+	private void setupSkipButton() {
+		Button btn = (Button)findViewById(R.id.skipSplashBtn);
+		btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				deleteActivityAndOpenNext();
+			}
+		});
+	}
+	
+	private void moveTeemo() {
+		ImageView teemo = (ImageView)findViewById(R.id.teemo);
+		
+		TranslateAnimation translateLeftAnimation = new TranslateAnimation(0, DISTANCE_TO_MOVE_LEFT, 0, 0);
+		translateLeftAnimation.setDuration(DURATION_OF_ANIMATIONS);
+		translateLeftAnimation.setFillAfter(true);
+		teemo.startAnimation(translateLeftAnimation);
+	}
+
+	private void displayWelcomeMessage() {
+		LinearLayout welcomeText = (LinearLayout)findViewById(R.id.linearLayout1);
+		
+		TranslateAnimation translateRightAnimation = new TranslateAnimation(0, DISTANCE_TO_MOVE_RIGHT, 0, 0);
+		translateRightAnimation.setDuration(DURATION_OF_ANIMATIONS);
+		translateRightAnimation.setFillAfter(true);
+
+		AlphaAnimation appearAnimation = new AlphaAnimation(0, 1);
+		appearAnimation.setDuration(DURATION_OF_ANIMATIONS);
+		appearAnimation.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationStart(Animation animation) {		
+			}
+	
+			@Override
+			public void onAnimationRepeat(Animation animation) {	
+			}
+			
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				deleteActivityAndOpenNext();
+			}
+
+		});
+
+		AnimationSet animation = new AnimationSet(true);
+		animation.addAnimation(translateRightAnimation);
+		animation.addAnimation(appearAnimation);
+		animation.setFillAfter(true);
+
+		welcomeText.startAnimation(animation);
+	}
+
+	private void deleteActivityAndOpenNext() {
+		startActivity(new Intent(WelcomeScreen.this, MainActivity.class));
+		finish();
+	}
+}

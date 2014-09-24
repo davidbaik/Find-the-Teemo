@@ -1,0 +1,36 @@
+package ca.cmpt276.as3.findtheteemo;
+
+public class Bush {	
+	private boolean isTeemo = false;
+	private int numOfTeemosOnHorizontal = 0;
+	private int numOfTeemosOnVertical = 0;
+	boolean isChecked = false;
+	
+	public Bush() {
+		isTeemo = false;
+		isChecked = false;
+		numOfTeemosOnHorizontal = 0;
+		numOfTeemosOnVertical = 0;
+	}
+	
+	public void setTeemo() {
+		isTeemo = true;
+	}
+	
+	public boolean getIsTeemo() {
+		return isTeemo;
+	}
+	
+	public void setChecked() {
+		isChecked = true;
+	}
+	
+	public boolean getChecked() {
+		return isChecked;
+	}
+	
+	public int numOfTeemosOnHorizontalAndVertical() {
+		return numOfTeemosOnHorizontal + numOfTeemosOnVertical;
+	}
+}
+

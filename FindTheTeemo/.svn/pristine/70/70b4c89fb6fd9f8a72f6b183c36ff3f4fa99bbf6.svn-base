@@ -1,0 +1,13 @@
+package ca.cmpt276.as3.findtheteemo;
+
+public class GameLogic {
+//	private static GameBoard gameBoard = null;
+
+//	public GameLogic() {
+//		gameBoard = new GameBoard();
+//	}
+	
+	public static String test() {
+		return "testing this shit out";
+	}
+}

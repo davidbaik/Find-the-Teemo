@@ -1,0 +1,31 @@
+package ca.cmpt276.as3.findtheteemo;
+
+public class GameLogic {
+	private static GameBoard gameBoard = null;
+	
+	public GameLogic(String size, int numOfTeemos) {
+		gameBoard = new GameBoard(size, numOfTeemos);
+	}
+	
+	public static String test() {
+		return "testing this shit out";
+	}
+	
+	public boolean isTeemoThere(int row, int column) {
+		gameBoard.setChecked(column, row);
+		if (gameBoard.getIsTeemo(column, row) == true) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public void doCheck(int row, int column) {
+		if (gameBoard.getIsTeemo(column, row) == true) {
+			//TODO
+			gameBoard.refreshNearbyTeemosData(column, row);
+		} else {
+			//reveal nearbyTeemos of bush
+		}
+	}
+}
